@@ -131,7 +131,7 @@ export const forgotPassword = async (req, res) => {
                 return res.status(400).json({ message: "Error rendering template" });
             }
             try {
-                await sendMail('ragavikaruna20@gmail.com', "Forgot Password Request - Your OTP Code", html);
+                await sendMail(email, "Forgot Password Request - Your OTP Code", html);
                 return res.json({ message: "OTP has been sent successfully" });
             } catch (error) {
                 console.log(error);

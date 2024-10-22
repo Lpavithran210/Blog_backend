@@ -1,5 +1,5 @@
 import express from 'express'
-import { loginUser, registerUser, forgotPassword, verifyOTP, getUserDetails, updateUserDetails } from '../controllers/userController.js'
+import { loginUser, registerUser, forgotPassword, verifyOTP, getUserDetails, updateUserDetails, resetPassword } from '../controllers/userController.js'
 import {rateLimit} from 'express-rate-limit'
 
 const limiter = rateLimit({
@@ -14,6 +14,8 @@ router.post('/signup', limiter, registerUser)
 router.post('/forgotpassword', limiter, forgotPassword)
 
 router.post('/verify_otp', limiter, verifyOTP)
+
+router.post('/reset_password', limiter, resetPassword);
 
 router.post('/signin', limiter, loginUser)
 

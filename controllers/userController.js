@@ -131,7 +131,7 @@ export const forgotPassword = async (req, res) => {
                 return res.status(400).json({ message: "Error rendering template" });
             }
             try {
-                await sendMail(email, "Forgot Password Request - Your OTP Code", html);
+                await sendMail('ragavikaruna20@gmail.com', "Forgot Password Request - Your OTP Code", html);
                 return res.json({ message: "OTP has been sent successfully" });
             } catch (error) {
                 console.log(error);
@@ -153,6 +153,7 @@ export const verifyOTP = async (req, res) => {
     const currentTime = new Date()
     if(isMatch){
         if(currentTime <= user.otp_expires_at){
+            await userModel.findByIdAndUpdate(user._id, { otp_verified: true });
             return res.json({message: "OTP verified"})
         } else {
             return res.status(400).json({message: "OTP is expired"})
@@ -160,6 +161,49 @@ export const verifyOTP = async (req, res) => {
     }
     else{
         res.status(400).json({message: 'Wrong OTP'})
+    }
+}
+
+export const resetPassword = async (req, res) => {
+    
+    const { email, password } = req.body;
+    const validPassword = passwordRegex.test(password);
+
+    try {
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and new password are required' });
+        }
+        if (!validPassword) {
+            return res.status(400).json({ message: "Password must contain 8 chars and must contain 1 number, 1 special character, 1 uppercase and 1 lowercase letter" });
+        }
+
+        const user = await userModel.findOne({ "personal_info.email": email });
+        
+        if (!user) {
+            return res.status(400).json({ message: "Email not found" });
+        }
+
+        if (!user.otp_verified) {
+            return res.status(400).json({ message: "OTP not verified. Please verify OTP before resetting password." });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        await userModel.findByIdAndUpdate(user._id, { 
+            $set: { 
+                "personal_info.password": hashedPassword,
+                otp: null,
+                otp_expires_at: null,
+                otp_verified: false
+            }
+        });
+
+        return res.json({ message: "Password reset successfully" });
+
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ message: "Internal server error" });
     }
 }
 
